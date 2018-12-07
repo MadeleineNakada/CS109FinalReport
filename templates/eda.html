@@ -1,0 +1,29 @@
+<div id="eda" class="tall banner bgbanner">
+
+        <img src="/static/images/drake.jpg" class="banner-img">
+        <div class="vmiddle">Exploratory Data Analysis</div>
+    
+    </div>
+    <div class="tall clear">
+    </div>
+
+<div>
+    <h3>Data Description</h3>
+    <p>
+        The Million Playlist Dataset is a massive dataset so we've only used the first 1000 playlists so far. The Dataset is formatted in sets of 1000 playlists, so as we continue to build and test our model we'll make it more robust by randomly selecting a file of 1000 playlists rather than just using the first 1000. We could also train on more data if we wanted to.
+    </p>
+    <p>
+        For each song in each of these 1000 playlists, we've retrieved audio feature data via Spotify API. Thirteen song features we started with, including tempo and key, are all quantitative. Genre, description, and name are categorical. More detail regarding the data types, values, and ranges can be found here: https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/. 
+    </p>
+    <h3>Data Cleaning Methods</h3>
+    <p>
+        We removed songs that had missing data and selected playlists that had over 20 songs. We felt that playlists with less than 20 songs would show too much variance between songs and would make it difficult for us to determine which song features were most similar to one another and potentially led to the formation of the playlist. 
+    </p>
+
+    <h3>Noteworthy Findings</h3>
+    <p>
+        We found correlations between song features that we felt would be relevant in a good prediction model. For example, a strong negative correlation between "energy" and "acousticness" as well as between "loudness" and "acousticness". On the other hand, we found a positive correlation between "energy" and "valence", "energy" and "loudness", and "danceability" and "valence".  We also noticed that most songs have time signature 4 (4/4). 
+
+        With the negatively correlated values ___________________.
+    </p>
+</div>

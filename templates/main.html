@@ -1,0 +1,31 @@
+<div class="row mainBox">
+    <div class="col-md-4 sticky-top" id="sticky-menu">
+        <div class="row align-items-center tall">
+            <div class="col-md-10">
+                <div id="menu" class="list-group">
+                    <a class="list-group-item list-group-item-action" href="#intro">Introduction</a>
+                    <a class="list-group-item list-group-item-action" href="#eda">EDA</a>
+                    <a class="list-group-item list-group-item-action" href="#process">Modeling Approaches</a>
+                    <a class="list-group-item list-group-item-action" href="#results">Results & Comparison</a>
+                    <a class="list-group-item list-group-item-action" href="#conclusion">Conclusion</a>
+                    <a class="list-group-item list-group-item-action" href="#future">Future Work</a>
+                    <a class="list-group-item list-group-item-action" href="#references">References</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8" >
+        <div id="content">
+                    {% include "introduction.html" %}
+
+            {% include "eda.html" %}
+
+                {% include "process.html" %}
+                    {% include "results.html" %}
+                    {% include "conclusion.html" %}
+                    {% include "future.html" %}
+                    {% include "references.html" %}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,33 @@
+<div id="process" class="tall banner bgbanner">
+
+        <img src="/static/images/keith.jpg" class="banner-img">
+        <div class="vmiddle">Modeling Approaches</div>
+    
+    </div>
+    <div class="tall clear">
+    </div>
+
+<div >
+    <h3>Preliminary Model</h3>
+    <p>
+        One of the biggest challenges we faced was figuring out what to treat as our predictor and response variables. This was challenging because we wanted to somehow use a collection of songs as our input variable, but we wanted to train on a number of playlists, which would give us many inputs made up of many songs. However, we want to do playlist prediction, which we've defined as determining whether or not a song belongs in a playlist, which means our response variable is a boolean and our input variable should be a song.
+    </p>
+    <p>
+        We reconciled these two conflicting definitions by taking each playlist and finding the mean value for all of its sound features (i.e. tempo, loudness, valence, etc). Then, for each song in the playlist, we found the difference between the song's features and the playlist's feature means. These difference values are the predictors to serve as the input to our model, and our output would be categorical: 1 if and only if the song is in the playlist from which the means were extracted from, 0 otherwise.
+    </p>
+    <h3>Full Methodology</h3>
+    <ol>
+        <li>For each playlist, get "audio features" for each song </li>
+        <li>Average the audio features of all songs to get "playlist features"</li>
+        <li>For 10 random songs <b>in</b> the playlist, subtract the "playlist features" from the song's "audio features" to collect an array of "differences"</li>
+        <li>Add this array of "differences" to the data frame of inputs and append 1 to the array of outputs (both arrays should always have the same length)</li>
+        <li>Randomly select 30 songs \textbf{not} in the playlist (from a library of songs we've collected). Get the "audio features" of each song and subtract the "playlist features" for each item. Add these arrays of "differences" to the data frame of inputs and append 0 to the array of outputs.</li>
+        <li>Fit a model using our input data frame and output array.</li>
+    </ol>
+    <p>
+        The motivation behind adding the differences is to establish a variance quantity and keep the playlist vector as a mean. Different predictors have different values, so to provide some standard to compare against, the differences serve as the variance quantity that will be used. 
+    </p>
+    <p>
+        Having reduced the playlist prediction problem to a classification problem, there are a number of models we could try to use. So far, we've only tested logistic regression. We built training and test data sets by randomly adding songs to each playlist, and assigning these songs a response value of 0. So far, our model has 75\% accuracy using basic logistic regression.
+    </p>
+</div>
