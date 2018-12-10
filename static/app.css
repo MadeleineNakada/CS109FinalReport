@@ -1,3 +1,8 @@
+.active{
+    background-color: #595959!important;
+    border-color: #161616!important;
+}
+
 .banner{
     right: -21%;
     position: absolute;
@@ -14,7 +19,7 @@
     position: absolute;
     top: 0;
     right: 0;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .bgbanner{
@@ -27,11 +32,14 @@
     /* display: table-cell; */
 }
 
+
 .vmiddle{
     margin-top: 30vh;
     z-index: 200000;
     position: absolute;
     width: 100%;
+    font-family: 'Oswald', sans-serif;
+
 }
 
 .clear{
@@ -67,4 +75,8 @@
 
 .tall{
     height: 100vh
+}
+
+#top{
+    right: 0px!important;
 }
