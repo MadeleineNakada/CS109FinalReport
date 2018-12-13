@@ -10,11 +10,45 @@
 <div>
     <h3>Data Description</h3>
     <p>
-        The Million Playlist Dataset is a massive dataset so we've only used the first 1000 playlists so far. The Dataset is formatted in sets of 1000 playlists, so as we continue to build and test our model we'll make it more robust by randomly selecting a file of 1000 playlists rather than just using the first 1000. We could also train on more data if we wanted to.
+        The Million Playlist Dataset is a massive dataset, segmented into sets of 1000 playlists. We're dealing with the size of this dataset by randomly selecting a set of 1000 playlists to use at a time. Since the playlists are randomly selected, we're assuming there's a decent variety of songs within and between playlists.
+
     </p>
+    <pre class="prettyprint code">
+playlist_index = random.randint(0,1000) * 1000
+path = './data/mpd.slice.'+ str(playlist_index)+'-'+ str(playlist_index + 999) + '.json'
+with open(path) as infile:
+    data = json.load(infile)
+playlists = pd.DataFrame(data['playlists'])
+playlists.set_index("pid")
+playlists.shape</pre>
     <p>
-        For each song in each of these 1000 playlists, we've retrieved audio feature data via Spotify API. Thirteen song features we started with, including tempo and key, are all quantitative. Genre, description, and name are categorical. More detail regarding the data types, values, and ranges can be found here: https://developer.spotify.com/documentation/web-api/reference/tracks/get-audio-features/. 
+        For each song in each of these 1000 playlists, we've retrieved audio feature data via Spotify API. Thirteen song features we started with, including tempo and key, are all quantitative. Genre, description, and name are categorical. Unfortunately, the Spotify API doesn't have one call to give the year, genre, and audiofeatures for a song so we had to make multiple calls to the API for each song. Below is our call to get a song's feature. We also had functions to get the song's artist and album (see our <a href="https://github.com/MadeleineNakada/CS109Group19/blob/master/EDAMaddy.ipynb">jupyter notebook</a> for the full code).
     </p>
+    <pre class="prettyprint code">
+def get_features(songs):
+url = base_url + '/audio-features'
+i = 0
+features = []
+while i < len(songs):
+    current = songs[i:i+100]
+    payload = {'ids': ','.join(current)}
+    r =requests.get(url, headers=headers, params=payload)
+    data = r.json()
+    features = features + data["audio_features"]
+    i = i + 100
+return features</pre>
+    <p>
+        Since each call to the Spotify API is takes time, and we paused between calls, we chose to store the data for songs we had already seen to make the data generating process faster on future iterations. We stored all the necessary information in textfiles and imported on each run through our notebook. We currently have audiofeatures for 762,000 songs stored.
+    </p>
+<pre class="prettyprint code">
+with open('./songs/feature_data.txt', 'r') as infile:
+    feature_data = eval(infile.read())
+with open('./songs/genre_data.txt', 'r') as infile:
+    genre_data = eval(infile.read())
+with open('./songs/year_data.txt', 'r') as infile:
+    year_data = eval(infile.read())
+with open('./songs/popularity_data.txt', 'r') as infile:
+    popularity_data = eval(infile.read())</pre>
     <h3>Data Cleaning Methods</h3>
     <p>
         We removed songs that had missing data and selected playlists that had over 20 songs. We felt that playlists with less than 20 songs would show too much variance between songs and would make it difficult for us to determine which song features were most similar to one another and potentially led to the formation of the playlist. 
@@ -22,8 +56,15 @@
 
     <h3>Noteworthy Findings</h3>
     <p>
-        We found correlations between song features that we felt would be relevant in a good prediction model. For example, a strong negative correlation between "energy" and "acousticness" as well as between "loudness" and "acousticness". On the other hand, we found a positive correlation between "energy" and "valence", "energy" and "loudness", and "danceability" and "valence".  We also noticed that most songs have time signature 4 (4/4). 
-
-        With the negatively correlated values ___________________.
+        We found correlations between song features that we felt would be relevant in a good prediction model. For example, a strong negative correlation between "energy" and "acousticness" as well as between "loudness" and "acousticness". On the other hand, we found a positive correlation between "energy" and "valence", "energy" and "loudness", and "danceability" and "valence".  We also noticed that most songs have time signature 4 (4/4). The below graph shows correlations between our predictors
     </p>
+    <div class="frame">
+        <img src="/static/images/eda.png" />
+    </div>
+    <p>
+        We also looked at breakdown of genre distribution since we noticed that our own playlists are often broken down by genre. The distribution of most common genre in a playlist can be seen below.
+    </p>
+    <div class="frame scroll-frame">
+        <img src="/static/images/genres.png">
+    </div>
 </div>

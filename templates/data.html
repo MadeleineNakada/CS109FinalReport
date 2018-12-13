@@ -1,0 +1,265 @@
+<div id="data" class="tall banner bgbanner">
+
+        <img src="/static/images/keith.jpg" class="banner-img">
+        <div class="vmiddle">Creating the Data Set</div>
+    
+    </div>
+<div class="tall clear">
+</div>
+
+<div >
+    <h3>Creating the Data Set</h3>
+    <p>
+        One of the biggest challenges we faced was figuring out what to treat as our predictor and response variables. This was challenging because we wanted to somehow use a collection of songs as our input variable, but we wanted to train on a number of playlists, which would give us many inputs made up of many songs. However, we want to do playlist prediction, which we've defined as determining whether or not a song belongs in a playlist, which means our response variable is a boolean and our input variable should be a song.
+    </p>
+    <p>
+        We reconciled these two conflicting definitions by taking each playlist and finding the mean value for all of its sound features (i.e. tempo, loudness, valence, etc). Below is our code for converting a playlist of songs into a mean vector.
+    </p>
+<pre class="prettyprint code">
+failures = 0
+
+# iterate over all playlists
+for index, row in playlists.iterrows():
+    
+    # render progress bar using helper function
+    progress_bar(index + 1,playlists.shape[0], failures)
+    
+    # initialize all values to 0
+    features = {
+        "acousticness": 0,
+        "danceability": 0,
+        "duration_ms" : 0,
+        "energy" : 0,
+        "instrumentalness" : 0,
+        "key" : 0,
+        "liveness" : 0,
+        "loudness" : 0,
+        "mode" : 0,
+        "speechiness" : 0,
+        "time_signature" : 0,
+        "tempo" : 0,
+        "valence" : 0,
+    }
+    
+    # initialize counters for variable whose frequencies we measure
+    artists = set({})
+    albums = set({})
+
+    # hashtable of features to check membership
+    all_features = set(features.keys())
+
+    # get tracks for playlist
+    tracks = row["tracks"]
+
+    # seen stores the songs we've seen, songs stores new songs
+    seen = []
+    songs = []
+    
+    # iterate over all songs in playlist
+    for track in tracks:
+        track_id = track['track_uri'].split(":")[-1]
+        
+        # if we've seen the track, continue, otherwise get its identifiers
+        if track_id in feature_data:
+            seen.append(track_id)
+        else:
+            songs.append(track_id)
+            artist_id = track['artist_uri'].split(":")[-1]
+            artists.add(artist_id)
+            album_id = track['album_uri'].split(":")[-1]
+            albums.add(album_id)
+    
+    # get song data, either by looking up on API or in our files
+    # if there's any issue with the failure we skip this row rather than
+    # terminating the program
+    try:
+        # get information for new songs, returning counters and raw list
+        # here we use the helper functions defined previously
+        song_features = get_features(songs)
+        genres, genre_list = get_genres(list(artists))
+        years, years_list = get_years(list(albums))
+        popularity = get_popularity(songs)
+        popularity_list = list(popularity)
+        print(len(feature_data))
+        
+        # add new songs to our database
+        for song, feature, genre, year, pop in zip(songs, song_features, genre_list, years_list, popularity_list):
+            feature_data[song] = feature
+            genre_data[song] = genre
+            year_data[song] = year
+            popularity_data[song] = pop
+
+        # get ids of all songs since they're now all in database
+        songs = seen + songs
+        
+        # initialize a counter so we only train on 2/3 of song in the playlist
+        total = 0
+        num_train = len(songs) *2/3
+        
+        # get total sum/count for all fetaures
+        for song in songs:
+            if total < num_train:
+                if not song in feature_data:
+                    continue
+                song_features.append(feature_data[song])
+                if type(genre_data[song]) == list:
+                    for genre in genre_data[song]:
+                        genres[genre] += 1
+                else:
+                    genres[genre_data[song]] += 1
+                popularity.append(popularity_data[song])
+                years[year_data[song]] += 1
+            
+        # update popularity to be median value (not mean b/c outliers)
+        popularity = np.median(popularity)
+        features['popularity'] = popularity        
+
+        # average necessary values and update data table
+        for feature in feature_names:
+            if feature in all_features:
+                features[feature] = features[feature] / len(tracks)
+                if feature == "time_signature":
+                    features[feature] = int(features[feature] + 0.5)
+            elif feature == "year":
+                features["year"] = int(years.most_common(1)[0][0])
+            elif feature == "genre":
+                features["genre"] = genres.most_common(1)[0][0]            
+            playlists.at[index, feature] = features[feature]
+        playlists.at[index, "tracks"] = songs
+    except Exception as ex:
+        print('error', ex)
+        failures += 1
+</pre>
+    <p>
+        The motivation behind using the differences to predict playlists is to establish a variance quantity. This way, the playlist is  a vector of measurements against which we can compare each song, rather than a collection of songs which would be difficult to compare other songs to. We hypothesized that songs in the same playlist might have smaller variances from the playlist mean for certain predictors than songs not in the playlist. 
+    </p>
+    <p>
+        To build on our hypothesis, we sought out to narrow the predictors to be used. Initially, our data set had predictors related to the playlist itself (rather than about the songs inside it). Some of these were "name", "number of albums", "number of artists", "number of followers", etc. Removing the non-numerical predictors that were useless in our model (i.e. "name") as well as those predictors related to the playlist itself rather than the songs inside that playlist (i.e. "number of artists"), we narrowed down our list of predictors to the key measurable items. The list of predictors used, as well as their data types, are as follows. 
+    </p>
+    <p>
+        Then, for each song in the playlist, we found the difference between the song's features and the playlist's feature means. These difference values are the predictors to serve as the input to our model, and our output would be categorical: 1 if and only if the song is in the playlist from which the means were extracted from, 0 otherwise.
+    </p>
+    <ul>
+        <li>acousticness: float64</li>
+        <li>danceability: float64</li>
+        <li> energy: float64</li>
+        <li>instrumentalness: float64</li>
+        <li>key: float64</li>
+        <li>liveness: float64</li>
+        <li>loudness: float64</li>
+        <li>mode: float64</li>
+        <li>speechiness: float64</li>
+        <li> time signature: float64</li>
+        <li>tempo: float64</li>
+        <li>valence: float64</li>
+        <li>duration ms: float64</li>
+    </ul>
+    <p>
+        To create our test and training data set, we took 2/3 of the songs from each playlist with more than 20 songs, and extracted the average measures for each of our predictors. We then created our dataset by taking the 1/3 of the songs not used to create the playlist vector, and calculating their differences from the mean. That difference vector then became a row in our data train table, and we assigned it the corresponding response 1, to indicate that it did belong in the playlist.
+    </p>
+    <p>
+        However, we also needed to train our data on songs that did not belong in the playlist. We knew that when we arrived at the problem of actually predicting songs, we'd need to have some sort of pool of songs to select from–it would be unreasonable to go through every song in existence and check if it belongs in this playlist. We decided a good way to narrow down the songs from which we would be predicting would be by taking the most common genre in the playlist, and the most common year (+/- year), and query songs from Spotify that met this criteria. We used this same methodology to query 50 "noisy" songs from Spotify, add their difference vectors to the data set, and assign them a response 0.
+    </p>
+    <p>Code to get new songs from Spotify:</p>
+<pre class="prettyprint code">
+def get_new_songs(genre, year):
+    year = int(year)
+    genre = "%22" + genre.replace(' ', '%20') + "%22"
+    url = base_url + '/search?limit=50&type=track&q=genre:' + genre + "%20year:"+str(year) + "%20year:"+str(year + 1)+ "%20year:"+str(year + -1)
+    r =requests.get(url, headers=headers)
+    data =  r.json()
+    ids = []
+    songs = []
+    artists = set([])
+    albums = set([])
+    for track in data['tracks']["items"]:
+        ids.append(track["id"])
+        if not track["id"] in feature_data:
+            songs.append(track["id"])
+            albums.add(track["album"]["id"])
+            artists.add(track["artists"][0]["id"])
+    song_features = get_features(songs)
+    genres, genre_list = get_genres(list(artists))
+    years, years_list = get_years(list(albums))
+    popularity = get_popularity(songs)
+    popularity_list = list(popularity)
+
+    # add new songs to our database
+    for song, feature, genre, year, pop in zip(songs, song_features, genre_list, years_list, popularity_list):
+        feature_data[song] = feature
+        genre_data[song] = genre
+        year_data[song] = year
+        popularity_data[song] = pop
+    return ids
+</pre>
+    <p>Building the Data Set:</p>
+<pre class="prettyprint code">
+columns=["acousticness", "danceability",
+    "energy","instrumentalness","key","liveness",
+    "loudness","mode","speechiness","time_signature",
+    "tempo","valence", "popularity"]
+
+def make_row(track_id, row):
+features = feature_data[track_id]
+for feature in features:
+    if feature not in str_feature:
+        features[feature] = abs(features[feature] - row[feature])
+popularity = abs(popularity_data[track_id] - row['popularity'])
+features["popularity"] = int(popularity)
+return features
+
+str_feature = set(["analysis_url", "id", "uri", "type", "track_id", "track_href"])
+song_keys = feature_data.keys()
+train_data_songs = pd.DataFrame([], columns=columns)
+train_data_y = []
+train_songs = {}
+i = 1
+total = train_data.shape[0]
+for index, row in train_data.iterrows():
+    progress_bar(i, total, 0)
+    i += 1
+    tracks = set([])
+    for index, track in enumerate(row["tracks"]):
+        if index >  len(songs) *2/3:
+            track_id = track
+            tracks.add(track_id)
+            if track_id in feature_data:
+                features = make_row(track_id, row)
+                train_data_songs = train_data_songs.append(features, ignore_index=True)
+                train_data_y.append(1)
+    other_keys = get_new_songs(row["genre"], row["year"])
+    for key in other_keys:
+        if not key in tracks and key in feature_data:
+            features = make_row(key, row)
+            train_data_songs = train_data_songs.append(features, ignore_index=True)
+            train_data_y.append(0)
+    
+train_data_songs = train_data_songs.set_index("id")
+</pre>
+    <h3>Summarized Methodology For Data Set Construction</h3>
+    <ol>
+        <li>For each playlist, get "audio features" for each song </li>
+        <li>Average the audio features of all songs to get "playlist features"</li>
+        <li>For 10 random songs <b>in</b> the playlist, subtract the "playlist features" from the song's "audio features" to collect an array of "differences"</li>
+        <li>Add this array of "differences" to the data frame of inputs and append 1 to the array of outputs (both arrays should always have the same length)</li>
+        <li>Query Spotify for 50 songs in the most popular genre/year of our playlist. Get the "audio features" of each song and subtract the "playlist features" for each item. Add these arrays of "differences" to the data frame of inputs and append 0 to the array of outputs.</li>
+        <li>Fit a model using our input data frame and output array.</li>
+    </ol>
+    <h3>Example Generated Data Set Head</h3>
+    <div class="table-frame">
+    <table class="table">  <thead>    <tr style="text-align: right;">      <th></th>      <th>acousticness</th>      <th>danceability</th>      <th>energy</th>      <th>instrumentalness</th>      <th>key</th>      <th>liveness</th>      <th>loudness</th>      <th>mode</th>      <th>speechiness</th>      <th>time_signature</th>      <th>tempo</th>      <th>valence</th>      <th>popularity</th>      <th>analysis_url</th>      <th>duration_ms</th>      <th>track_href</th>      <th>type</th>      <th>uri</th>    </tr>    <tr>      <th>id</th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>      <th></th>    </tr>  </thead>  <tbody>    <tr>      <th>5QTxFnGygVM4jFQiBovmRo</th>      <td>0.094493</td>      <td>0.002154</td>      <td>0.095460</td>      <td>0.031209</td>      <td>1.281645</td>      <td>0.021759</td>      <td>2.313001</td>      <td>0.304295</td>      <td>0.024029</td>      <td>1.0</td>      <td>7.629967</td>      <td>0.141012</td>      <td>8</td>      <td>https://api.spotify.com/v1/audio-analysis/5QTx...</td>      <td>23113.976190</td>      <td>https://api.spotify.com/v1/tracks/5QTxFnGygVM4...</td>      <td>audio_features</td>      <td>spotify:track:5QTxFnGygVM4jFQiBovmRo</td>    </tr>    <tr>      <th>1QEEqeFIZktqIpPI4jSVSF</th>      <td>0.066309</td>      <td>0.030445</td>      <td>0.124284</td>      <td>0.022018</td>      <td>0.020700</td>      <td>0.051184</td>      <td>1.559972</td>      <td>0.200552</td>      <td>0.006623</td>      <td>0.0</td>      <td>34.145004</td>      <td>0.008181</td>      <td>9</td>      <td>https://api.spotify.com/v1/audio-analysis/1QEE...</td>      <td>24326.366337</td>      <td>https://api.spotify.com/v1/tracks/1QEEqeFIZktq...</td>      <td>audio_features</td>      <td>spotify:track:1QEEqeFIZktqIpPI4jSVSF</td>    </tr>    <tr>      <th>6UBjSnyP1O5W5ndJoO9vUk</th>      <td>0.082223</td>      <td>0.043080</td>      <td>0.136779</td>      <td>0.033292</td>      <td>0.406468</td>      <td>0.061317</td>      <td>0.291188</td>      <td>0.221200</td>      <td>0.015987</td>      <td>2.0</td>      <td>14.061003</td>      <td>0.047115</td>      <td>1</td>      <td>https://api.spotify.com/v1/audio-analysis/6UBj...</td>      <td>34106.173841</td>      <td>https://api.spotify.com/v1/tracks/6UBjSnyP1O5W...</td>      <td>audio_features</td>      <td>spotify:track:6UBjSnyP1O5W5ndJoO9vUk</td>    </tr>    <tr>      <th>1GqlvSEtMx5xbGptxOTTyk</th>      <td>0.098313</td>      <td>0.091413</td>      <td>0.066728</td>      <td>0.002258</td>      <td>2.035982</td>      <td>0.085450</td>      <td>1.113922</td>      <td>0.092800</td>      <td>0.019101</td>      <td>1.0</td>      <td>40.522782</td>      <td>0.111395</td>      <td>1</td>      <td>https://api.spotify.com/v1/audio-analysis/1Gql...</td>      <td>81870.894294</td>      <td>https://api.spotify.com/v1/tracks/1GqlvSEtMx5x...</td>      <td>audio_features</td>      <td>spotify:track:1GqlvSEtMx5xbGptxOTTyk</td>    </tr>    <tr>      <th>3e0FzZjTXOUtiJGSClOBrI</th>      <td>0.039311</td>      <td>0.199471</td>      <td>0.226306</td>      <td>0.011257</td>      <td>0.268817</td>      <td>0.034631</td>      <td>2.772731</td>      <td>0.187704</td>      <td>0.006333</td>      <td>2.0</td>      <td>39.170902</td>      <td>0.183738</td>      <td>2</td>      <td>https://api.spotify.com/v1/audio-analysis/3e0F...</td>      <td>101240.541667</td>      <td>https://api.spotify.com/v1/tracks/3e0FzZjTXOUt...</td>      <td>audio_features</td>      <td>spotify:track:3e0FzZjTXOUtiJGSClOBrI</td>    </tr>  </tbody></table>
+    </div>
+    <h3>Data Set Analysis</h3>
+     <p>
+        Since we a vector of differences from the playlist mean as the predictors for whether or not a song belongs in a playlist, we are making the assumption that there is some difference in these predictors for songs in the playlist and songs not in the playlist. We graphed the mean difference in means for songs in a playlist vs. songs not in the playlist below. The songs not in the playlist, as we will describe more in depth in our methods, were generated by querying Spotify for songs in playlist's most popular genre and time period.
+    </p>
+    <div class="frame">
+        <div class="frame-inner">
+            <img src="/static/images/eda2.png" />
+        </div>
+    </div>
+    <p>
+        As the above graph shows, we did see a difference in the means. Specifically, loudness and popularity had the largest difference, although this may be because they had larger magnitude. For both predictors, the mean difference in means for the songs in the playlist was lower than that of songs not in the playlist
+    </p>
+
+</div>

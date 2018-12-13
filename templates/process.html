@@ -1,6 +1,6 @@
 <div id="process" class="tall banner bgbanner">
 
-        <img src="/static/images/keith.jpg" class="banner-img">
+        <img src="/static/images/bagpipes.jpg" class="banner-img">
         <div class="vmiddle">Modeling Approaches</div>
     
     </div>
@@ -8,26 +8,28 @@
 </div>
 
 <div >
-    <h3>Preliminary Model</h3>
     <p>
-        One of the biggest challenges we faced was figuring out what to treat as our predictor and response variables. This was challenging because we wanted to somehow use a collection of songs as our input variable, but we wanted to train on a number of playlists, which would give us many inputs made up of many songs. However, we want to do playlist prediction, which we've defined as determining whether or not a song belongs in a playlist, which means our response variable is a boolean and our input variable should be a song.
+        Having reduced the playlist prediction problem to a classification problem, there were a number of models we could try to use. However, although we now have a classification problem we felt a decision tree would not work well for our problem. For each playlist, our model will use the mean of the playlist's songs' predictors to classify songs as belonging in a playlist or not belonging in the playlist. However, these mean quantities vary from playlist  to playlist so a decision tree which uses set thresholds to classify inputs would not be appropriate.
     </p>
     <p>
-        We reconciled these two conflicting definitions by taking each playlist and finding the mean value for all of its sound features (i.e. tempo, loudness, valence, etc). Then, for each song in the playlist, we found the difference between the song's features and the playlist's feature means. These difference values are the predictors to serve as the input to our model, and our output would be categorical: 1 if and only if the song is in the playlist from which the means were extracted from, 0 otherwise.
+        Instead, the two approaches we decided on were first to build a simple logistic regression model, and then to see if we could build a neural network with higher accuracy
     </p>
-    <h3>Full Methodology</h3>
-    <ol>
-        <li>For each playlist, get "audio features" for each song </li>
-        <li>Average the audio features of all songs to get "playlist features"</li>
-        <li>For 10 random songs <b>in</b> the playlist, subtract the "playlist features" from the song's "audio features" to collect an array of "differences"</li>
-        <li>Add this array of "differences" to the data frame of inputs and append 1 to the array of outputs (both arrays should always have the same length)</li>
-        <li>Randomly select 30 songs \textbf{not} in the playlist (from a library of songs we've collected). Get the "audio features" of each song and subtract the "playlist features" for each item. Add these arrays of "differences" to the data frame of inputs and append 0 to the array of outputs.</li>
-        <li>Fit a model using our input data frame and output array.</li>
-    </ol>
+    <h3>Logistic Regression</h3>
     <p>
-        The motivation behind adding the differences is to establish a variance quantity and keep the playlist vector as a mean. Different predictors have different values, so to provide some standard to compare against, the differences serve as the variance quantity that will be used. 
+        We ran fit a logistic regression model over 250 iterations on our training data. This model was mostly a test to see if our dataset had the predictors to allow us to achieve any significant level of accuracy in classification.
+    </p>
+<pre class="prettyprint code">
+from sklearn.linear_model import LogisticRegression
+logreg = LogisticRegression(C=10000, solver='newton-cg', max_iter=250)
+logreg.fit(train_data_x, train_data_y)
+logreg.score(test_data_x, test_data_y)</pre>
+    <p>
+        Initially, we fit our model on training data where 1/3 of the playlist's original songs were included with response value 1, and 30 randomly selected songs from a set of songs we had gathered were used with response value 0. This model achieved 75% test accuracy with no cross-validation.
     </p>
     <p>
-        Having reduced the playlist prediction problem to a classification problem, there are a number of models we could try to use. So far, we've only tested logistic regression. We built training and test data sets by randomly adding songs to each playlist, and assigning these songs a response value of 0. So far, our model has 75\% accuracy using basic logistic regression.
+        However, while we were happy with the above model, it was fundamentally flawed for prediction. The model had fairly high accuracy of detecting if a song was originally in the playlist, but this assumed that the songs we'd "want" in a playlist would be in our set of testing songs for prediction. The odds of this occuring would be very low since we were randomly selecting songs from an arbitrary set of songs. Instead, as described in 5.1, we first queried the Spotify playlist for 50 songs from the playlist's most common genre and year (+/- 1 year).
+    </p>
+    <p>
+        This brought our test accuracy down to 47.6%. The decrease was not surprising since by querying songs from the same genre as our playlist, we'll likely see smaller variations in features between the songs originally in the playlist and new songs. However, we decided this was a trade-off we were willing to make since the overall goal of the project is playlist prediction, and so its important that the pool of songs from which we are selecting songs to add to our playlist has a high probability of having a song we want, rather than letting there be a probability no song we want is in the pool. We will discuss results more in the next section.
     </p>
 </div>
