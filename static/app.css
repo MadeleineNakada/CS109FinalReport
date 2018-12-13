@@ -69,6 +69,8 @@
     overflow: scroll;
     border: 1px solid grey;
     border-radius: 3px;
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
 .frame img{
     max-width: 100%;

@@ -32,4 +32,43 @@ logreg.score(test_data_x, test_data_y)</pre>
     <p>
         This brought our test accuracy down to 47.6%. The decrease was not surprising since by querying songs from the same genre as our playlist, we'll likely see smaller variations in features between the songs originally in the playlist and new songs. However, we decided this was a trade-off we were willing to make since the overall goal of the project is playlist prediction, and so its important that the pool of songs from which we are selecting songs to add to our playlist has a high probability of having a song we want, rather than letting there be a probability no song we want is in the pool. We will discuss results more in the next section.
     </p>
+    <p>We attempted to implement cross-validation to improve our logistic regression model but ran into time-out errors that
+        we were unable to fix before submission
+    </p>
+<pre class="prettyprint code">
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.model_selection import cross_val_score
+logregcv = LogisticRegressionCV(solver='saga', cv=5, max_iter=1000).fit(train_data_x, train_data_y)
+</pre>
+    <h3>Neural Network</h3>
+    <p>Our second approach was to implement a Neural Network. We used the base code that we used in class and attempted
+        modify it to improve our accuracy. We use binary_accuracy to measure our accuracy since we had reduced the problem
+        to a binary classification problem.
+    </p>
+<pre class="prettyprint code">
+import keras
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import Dropout
+from keras.layers import GaussianNoise
+from keras import regularizers
+from sklearn.metrics import r2_score as r2
+
+input_dim = len(columns)
+n_hidden = 100
+
+model = Sequential()
+model.add(Dense(n_hidden, activation='relu', input_shape=(input_dim,)))
+model.add(Dense(n_hidden, activation='sigmoid'))
+model.add(Dense(n_hidden, activation='relu'))
+model.add(Dense(n_hidden, activation='sigmoid'))
+model.add(Dropout(0.2))
+model.add(Dense(1, activation = 'sigmoid'))
+model.compile(optimizer='sgd', loss='binary_crossentropy',  metrics=['binary_accuracy'])
+model.summary()
+</pre>
+<p>We added additional layers and tried changing the number of nodes at each hidden layer, mostly through trial and error.
+    We were not able to improve the model much. We did discovere that linear activation made our model perform significantly
+    worse. Results are discussed below
+</p>
 </div>

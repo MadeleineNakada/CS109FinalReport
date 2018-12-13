@@ -9,67 +9,204 @@
 
 <div >
     <p>
-        Overall, we weren't able to find a model with an accuracy we found to be satisfying. If we had more time,
-        we'd continue refining our
+        Ideally, we would have liked to create a model with over 90% accuracy. However, on thing to keep in mind is that
+        playlist generation isn't nearly as clear cut a problem as cancer classification or digit identification. Taste
+        is something that is inherently subjective and hard to quantify, although we did try to come up with our own
+        measurement of success by taking a partial playlist and trying to generate the rest of it.
     </p>
-    <p>Something Here About Tastes Changing</p>
-
-    <table class="table">
-        <tr>
-            <th>Original Playlist</th>
-            <th>Linear Regression on Random Data</th>
-        </tr>
-        <tr>
-        <td>
-                <ul>
-                    <li>Play It Again</li>
-                    <li>Cop Car</li>
-                    <li>Chillin' It</li>
-                    <li>Highway Don't Care</li>
-                    <li>Talledega</li>
-                    <li>Take Your Time</li>
-                    <li>Bottom's Up</li>
-                    <li>Ain't Worth the Whiskey</li>
-                    <li>Drunk on A Plane</li>
-                    <li>Cruise-Remix</li>
-                    <li>Sunshine & Whiskey</li>
-                    <li>Drink to That All Night</li>
-                    <li>Day Drinking</li>
-                    <li>Girl In A Country Song</li>
-                    <li>Carolina</li>
-                    <li>Leave the Night On</li>
-                    <li>House Party</li>
-                    <li>Drunk Americans</li>
-                    <li>A Guy Walks Into A Bar</li>
-                    <li>Speakers</li>
-                </ul>
-            </td>
+    <p>
+        We came up with a number of models and ways to predict songs. The below table shows that the best model may not
+        correlate to the best prediction method. For example, we found that playlists generated on random songs had higher
+        accuracies on our test set. However, if we select random songs to predict from, we can see that the songs we end up
+        getting aren't a great fit for the original playlist. However, fitting a model from songs in the genre ended up
+        creating a much more difficult identification problem since the songs not in the playlist were very similar to the
+        songs in the playlist. The two models trained using this method ended up rejecting all the songs, and so were also
+        not great for prediction.
+    </p>
+    <p>
+        However, we did have two models that, subjectively, performed the task of model prediction fairly well. The first
+        model was a combination of the two models described above. Using the models trained on randomly sampled data, we
+        then fed them songs similar to the given playlist based on genre and year, and then let them identify the songs. In
+        the below table the results are in the 3th and 5th columns. The titles of the songs seem more similar to the songs
+        in the original playlist.
+    </p>
+    <p>
+        We also managed to improve our models trained on the genre/year specific data by decreasing the number of non-playlist
+        songs in the test and train data. We used these models on the genre specific data and we can see that the results are
+        similar to the previously discussed model. 
+    </p>
+    <div class="table-frame">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Original Playlist</th>
+                <th>Random Logistic Regression on Random Songs</th>
+                <th>Random Logistic Regression on Genre-Specific Songs</th>
+                <th>Random Neural Network on Random Songs</th>
+                <th>Random Neural Network on Genre-Specific Songs</th>
+                <th>Genre-Specific Logistic Regression on 30 Genre-Specific Songs</th>
+                <th>Genre-Specific Network on Genre-Specific Songs</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
             <td>
-                <ul>
-                    <li>Games People Play</li>
-                    <li>Permanent Lover - 1990 Digital Remaster</li>
-                    <li>In My Veins</li>
-                    <li>Lullabies</li>
-                    <li>This Is How We Do It</li>
-                    <li>Sweet Nothing - Diplo + Grandtheft Remix</li>
-                    <li>Mirror Maru</li>
-                    <li>Smoke</li>
-                    <li>Let Her Go - Live At Spotify Amsterdam</li>
-                    <li>Peace Be Still</li>
-                    <li>Sugar</li>
-                    <li>Man With The Bag</li>
-                    <li>Good Friend of Mine</li>
-                    <li>Homegrown</li>
-                    <li>My Dear</li>
-                    <li>Please Come Home For Christmas</li>
-                    <li>Sad Song (feat. Elena Coats)</li>
-                    <li>Talking Dreams</li>
-                    <li>Outsider</li>
-                </ul>
-            </td>
-        </tr>
-    </table>
-
+                    <ul>
+                        <li>Play It Again</li>
+                        <li>Cop Car</li>
+                        <li>Chillin' It</li>
+                        <li>Highway Don't Care</li>
+                        <li>Talledega</li>
+                        <li>Take Your Time</li>
+                        <li>Bottom's Up</li>
+                        <li>Ain't Worth the Whiskey</li>
+                        <li>Drunk on A Plane</li>
+                        <li>Cruise-Remix</li>
+                        <li>Sunshine & Whiskey</li>
+                        <li>Drink to That All Night</li>
+                        <li>Day Drinking</li>
+                        <li>Girl In A Country Song</li>
+                        <li>Carolina</li>
+                        <li>Leave the Night On</li>
+                        <li>House Party</li>
+                        <li>Drunk Americans</li>
+                        <li>A Guy Walks Into A Bar</li>
+                        <li>Speakers</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li>Games People Play</li>
+                        <li>Permanent Lover - 1990 Digital Remaster</li>
+                        <li>In My Veins</li>
+                        <li>Lullabies</li>
+                        <li>This Is How We Do It</li>
+                        <li>Sweet Nothing - Diplo + Grandtheft Remix</li>
+                        <li>Mirror Maru</li>
+                        <li>Smoke</li>
+                        <li>Let Her Go - Live At Spotify Amsterdam</li>
+                        <li>Peace Be Still</li>
+                        <li>Sugar</li>
+                        <li>Man With The Bag</li>
+                        <li>Good Friend of Mine</li>
+                        <li>Homegrown</li>
+                        <li>My Dear</li>
+                        <li>Please Come Home For Christmas</li>
+                        <li>Sad Song (feat. Elena Coats)</li>
+                        <li>Talking Dreams</li>
+                        <li>Outsider</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li>Make You Miss Me</li>
+                        <li>Break Up In A Small Town</li>
+                        <li>I Don't Dance</li>
+                        <li>I Like The Sound Of That</li>
+                        <li>American Kids</li>
+                        <li>Sunshine & Whiskey*</li>
+                        <li>Nothin' Like You</li>
+                        <li>Sangria</li>
+                        <li>Burnin' It Down</li>
+                        <li>Anything Goes</li>
+                        <li>Girl Crush</li>
+                        <li>Ride (feat. Macy Maloy)</li>
+                        <li>Drinking Class</li>
+                        <li>Mind Reader</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li>Ordinary Girl</li>
+                        <li>Dust to Dust - Acoustic</li>
+                        <li>Ghost</li>
+                        <li>No One Is Alone</li>
+                        <li>Beyond Oblivion</li>
+                        <li>One More</li>
+                        <li>Mokena</li>
+                        <li>Midnight Train To Georgia</li>
+                        <li>Accordion</li>
+                        <li>Big Fat Bass</li>
+                        <li>Pop Music</li>
+                        <li>Knights</li>
+                        <li>Just Around the Riverbend - From "Pocahontas" / Soundtrack Version</li>
+                        <li>Do What You Have To Do</li>
+                        <li>Only Son Of The Ladiesma</li>
+                        <li>Pretty Girl</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li>Make You Miss Me</li>
+                        <li>Break Up In A Small Town</li>
+                        <li>I Don't Dance</li>
+                        <li>I Like The Sound Of That</li>
+                        <li>American Kids</li>
+                        <li>Sunshine & Whiskey*</li>
+                        <li>Nothin' Like You</li>
+                        <li>Sangria</li>
+                        <li>Burnin' It Down</li>
+                        <li>Anything Goes</li>
+                        <li>Girl Crush</li>
+                        <li>Ride (feat. Macy Maloy)</li>
+                        <li>Drinking Class</li>
+                        <li>Mind Reader</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li>Make You Miss Me</li>
+                        <li>Break Up In A Small Town</li>
+                        <li>I Don't Dance</li>
+                        <li>I Like The Sound Of That</li>
+                        <li>American Kids</li>
+                        <li>Sunshine & Whiskey*</li>
+                        <li>Nothin' Like You</li>
+                        <li>Sangria</li>
+                        <li>Burnin' It Down</li>
+                        <li>Anything Goes</li>
+                        <li>Girl Crush</li>
+                        <li>Ride (feat. Macy Maloy)</li>
+                        <li>Drinking Class</li>
+                        <li>Mind Reader</li>
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        <li>Make You Miss Me</li>
+                        <li>Break Up In A Small Town</li>
+                        <li>I Don't Dance</li>
+                        <li>I Like The Sound Of That</li>
+                        <li>American Kids</li>
+                        <li>Sunshine & Whiskey*</li>
+                        <li>Nothin' Like You</li>
+                        <li>Sangria</li>
+                        <li>Burnin' It Down</li>
+                        <li>Anything Goes</li>
+                        <li>Girl Crush</li>
+                        <li>Ride (feat. Macy Maloy)</li>
+                        <li>Drinking Class</li>
+                        <li>Mind Reader</li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+        </table>
+    </div>
+    <h3>So Which is "Best"</h3>
+    <p>The best performing model on the test data was the Neural Network trained with 30 random genre-specific songs.
+      However, we'd stop short of saying this is the "best" model for two reasons. First, we'd like to see if we could
+      create a higher accuracy model in the future. Most of our time was spent wrangling the data into our dataset and
+      we think with a little more experimentation we could get accuracy over 85%. This belief is in part driven by the fact
+      that we were never really able to improve our neural network accuracy above our baseline level using examples from class.
+    </p>
+    <p>
+        Second, there are shortcomings to all these models. The models that predict from random data clearly are flawed
+        as the songs don't seem very similar to the original playlist. However, as we can see above, using Spotify's API to
+        filter songs from a playlist's most popular genre/year gives the same result for the same genre and year. We filtered out
+        songs that were already in the playlist, but if a user repeatedly asked one of our models for recommendations, they would
+        always get the same response. We discuss possible solutions to this issue in the next section.
+    </p>
 </div>
             
 

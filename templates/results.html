@@ -16,12 +16,12 @@
             <th>Test Accuracy</th>
         </tr>
         <tr>
-            <td>Basic Logistic Regression Train on Random Data</td>
+            <td>Basic Logistic Regression Trained on Random Data</td>
             <td>70.07%</td>
             <td>72.21</td>
         </tr>
         <tr>
-        <td>Basic Neural Network Train on Random Data</td>
+        <td>Basic Neural Network Trained on Random Data</td>
             <td>69.17%</td>
             <td>71.39</td>
         </tr>
@@ -35,14 +35,14 @@
             </td>
         </tr>
         <tr>
-                <td>Neural Network Trained and Tested on Playlist Specific Songs</td>
-                <td>
-                    96.22%
-                </td>
-                <td>
-                    42.5%
-                </td>
-            </tr>
+            <td>Neural Network Trained and Tested on Playlist Specific Songs</td>
+            <td>
+                96.22%
+            </td>
+            <td>
+                42.5%
+            </td>
+        </tr>
     </table>
     <p>
         Looking at the above table, one thing that immediately jumps out is the second and third rows, both because they have
@@ -50,12 +50,24 @@
         two models and after looking at their predictions, realized they were rejecting nearly every song (only a total of two
         songs were accepted for both). This was a result over overfitting the data. We realized that in taking playlists of over
         length 20, setting aside 1/3 of the songs to classify as 1 and then sampling 50 songs to classify as 0 was overfitting
-        our models to predict 0 more often.
+        our models to predict 0 more often. We hypothesized that if we reduced the number of non-playlist songs we were adding
+        we could achieve a more accurate model and we were right!
     </p>
+    <table class="table">
+            <tr>
+                <th>Model</th>
+                <th>Train Accuracy</th>
+                <th>Test Accuracy</th>
+            </tr>
+            <tr>
+                <td>Basic Logistic Regression Trained on 30 Genre Specific Songs</td>
+                <td>69.52%</td>
+                <td>78.65%</td>
+            </tr>
+            <tr>
+            <td>Basic Neural Network Trained on 30 Genre Specific Songs</td>
+                <td>69.74%</td>
+                <td>79.02%</td>
+            </tr>
+        </table>
 </div>
-6917006421783581
-7138895177722436
-0.6917006421783581]
-Train R2: 0.16527773167183135
-17668/17668 [==============================] - 0s 21us/step
-Test loss: [0.5637947876231553, 0.7138895177722436]
